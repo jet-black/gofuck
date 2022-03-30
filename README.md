@@ -90,7 +90,17 @@ err := ops.Add('^', PlusTwo)
 ### Explicit stack 
 Nested loops are made via explicit stack, to avoid fiber stack size growth.
 
+### UTF-8 support
+If you want your operation to be a taco, you can easily do it:
 
-
+```
+func Taco(state *State) error {
+	state.Mem[state.Pos] = 0
+	return nil
+}
+ops := interpreter.NewDefaultOperationsRegistry()
+err := ops.Add('🌮', Taco)
+// programs like `+🌮++` will execute successfuly 
+```
 
 
