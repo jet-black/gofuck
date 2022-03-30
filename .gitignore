@@ -1,0 +1,11 @@
+.DS_Store
+.idea/
+.vscode
+*.code-workspace
+vendor
+*.iml
+.env
+.bin
+.tmp
+.venv
+CMakeFiles
