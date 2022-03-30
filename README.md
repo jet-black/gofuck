@@ -87,6 +87,8 @@ ops.Remove('+')
 err := ops.Add('^', PlusTwo)
 ```
 
+### Explicit stack 
+Nested loops are made via explicit stack, to avoid fiber stack size growth.
 
 
 
