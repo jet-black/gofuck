@@ -1,18 +1,18 @@
 package main
 
 import (
-	"bytes"
-	"fmt"
+	"bufio"
 	"github.com/jet-black/gofuck/pkg/interpreter"
+	"os"
 	"strings"
 )
 
 func main() {
-	prog := ">>>+>>>>>+>>+>>+[<<],[\n    -[-[-[-[-[-[-[-[<+>-[>+<-[>-<-[-[-[<++[<++++++>-]<\n        [>>[-<]<[>]<-]>>[<+>-[<->[-]]]]]]]]]]]]]]]]\n    <[-<<[-]+>]<<[>>>>>>+<<<<<<-]>[>]>>>>>>>+>[\n        <+[\n            >+++++++++<-[>-<-]++>[<+++++++>-[<->-]+[+>>>>>>]]\n            <[>+<-]>[>>>>>++>[-]]+<\n        ]>[-<<<<<<]>>>>\n    ],\n]+<++>>>[[+++++>>>>>>]<+>+[[<++++++++>-]<.<<<<<]>>>>>>>>]"
-	input := "program counts lines, \n words, bytes"
+	prog := ">>>>+>+++>+++>>>>>+++[\n  >,+>++++[>++++<-]>[<<[-[->]]>[<]>-]<<[\n    >+>+>>+>+[<<<<]<+>>[+<]<[>]>+[[>>>]>>+[<<<<]>-]+<+>>>-[\n      <<+[>]>>+<<<+<+<--------[\n        <<-<<+[>]>+<<-<<-[\n          <<<+<-[>>]<-<-<<<-<----[\n            <<<->>>>+<-[\n              <<<+[>]>+<<+<-<-[\n                <<+<-<+[>>]<+<<<<+<-[\n                  <<-[>]>>-<<<-<-<-[\n                    <<<+<-[>>]<+<<<+<+<-[\n                      <<<<+[>]<-<<-[\n                        <<+[>]>>-<<<<-<-[\n                          >>>>>+<-<<<+<-[\n                            >>+<<-[\n                              <<-<-[>]>+<<-<-<-[\n                                <<+<+[>]<+<+<-[\n                                  >>-<-<-[\n                                    <<-[>]<+<++++[<-------->-]++<[\n                                      <<+[>]>>-<-<<<<-[\n                                        <<-<<->>>>-[\n                                          <<<<+[>]>+<<<<-[\n                                            <<+<<-[>>]<+<<<<<-[\n                                              >>>>-<<<-<-\n  ]]]]]]]]]]]]]]]]]]]]]]>[>[[[<<<<]>+>>[>>>>>]<-]<]>>>+>>>>>>>+>]<\n]<[-]<<<<<<<++<+++<+++[\n  [>]>>>>>>++++++++[<<++++>++++++>-]<-<<[-[<+>>.<-]]<<<<[\n    -[-[>+<-]>]>>>>>[.[>]]<<[<+>-]>>>[<<++[<+>--]>>-]\n    <<[->+<[<++>-]]<<<[<+>-]<<<<\n  ]>>+>>>--[<+>---]<.>>[[-]<<]<\n]"
+	input := "123000"
 	inputReader := strings.NewReader(input)
 	program := strings.NewReader(prog)
-	var out bytes.Buffer
+	out := bufio.NewWriterSize(os.Stdout, 1)
 	ops := interpreter.NewDefaultOperationsRegistry()
 	err := ops.Add('^', func(state *interpreter.State) error {
 		x := state.Mem[state.Pos]
@@ -25,7 +25,7 @@ func main() {
 	config := &interpreter.Config{
 		Program:            program,
 		Input:              inputReader,
-		Output:             &out,
+		Output:             out,
 		OperationsRegistry: ops,
 	}
 	svc, err := interpreter.NewInterpreter(config)
@@ -36,7 +36,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(out.String())
+	err = out.Flush()
+	if err != nil {
+		panic(err)
+	}
 	if err != nil {
 		panic(err)
 	}

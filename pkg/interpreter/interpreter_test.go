@@ -32,6 +32,12 @@ func TestUnbalancedLoops(t *testing.T) {
 	require.NotNil(t, err)
 }
 
+func TestUnbalancedRightParen(t *testing.T) {
+	interpreter := getInterpreter(t, "", "]", make(map[rune]Operation))
+	err := interpreter.Execute()
+	require.NotNil(t, err)
+}
+
 func TestSpacesAllowed(t *testing.T) {
 	interpreter := getInterpreter(t, "", "+ +", make(map[rune]Operation))
 	err := interpreter.Execute()

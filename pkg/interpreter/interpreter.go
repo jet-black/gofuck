@@ -3,12 +3,13 @@ package interpreter
 import (
 	"errors"
 	"fmt"
+	"github.com/jet-black/gofuck/internal/util"
 	"io"
 )
 
 type Interpreter struct {
 	state   *State
-	program *myBufferedReader
+	program *util.MyBufferedReader
 	ops     map[rune]Operation
 }
 
@@ -17,19 +18,9 @@ const (
 	RParen = ']'
 )
 
-func (interpreter *Interpreter) Execute() error {
-	parenDiff := 0
-	stack := myStack{
-		data: make([]*stackContext, 0),
-	}
-	root := &stackContext{
-		pos:       0,
-		enterLoop: true,
-		root:      true,
-	}
-	stack.push(root)
+func (interpreter *Interpreter) loop(parenDiff int, eval bool) error {
 	for {
-		tok, err := interpreter.program.ReadToken()
+		err := interpreter.consumeInput(eval)
 		if err == io.EOF {
 			if parenDiff != 0 {
 				return errors.New("unexpected EOF, unbalanced loop statements")
@@ -39,49 +30,61 @@ func (interpreter *Interpreter) Execute() error {
 		if err != nil {
 			return err
 		}
+		tok, err := interpreter.program.ReadToken()
+		if err != nil {
+			return err
+		}
+		if tok == LParen {
+			pos := interpreter.program.Pos
+			err := interpreter.loop(parenDiff+1, interpreter.state.Mem[interpreter.state.Pos] != 0)
+			if err != nil {
+				return err
+			}
+			if interpreter.state.Mem[interpreter.state.Pos] != 0 {
+				interpreter.program.Pos = pos - 1
+			}
+		}
+		if tok == RParen {
+			if parenDiff == 0 {
+				return errors.New("unbalanced ]")
+			}
+			return nil
+		}
+	}
 
+}
+
+func (interpreter *Interpreter) consumeInput(eval bool) error {
+	for {
+		tok, err := interpreter.program.ReadToken()
+		if err != nil {
+			return err
+		}
 		err = validate(tok, interpreter.ops)
 		if err != nil {
 			return err
 		}
-		c, err := stack.get()
+		if tok == LParen || tok == RParen {
+			interpreter.program.Pos -= 1
+			break
+		}
+		if !eval {
+			continue
+		}
+		op, ok := interpreter.ops[tok]
+		if !ok {
+			continue
+		}
+		err = op(interpreter.state)
 		if err != nil {
 			return err
 		}
-		if tok == RParen {
-			parenDiff--
-			if c.root {
-				return errors.New("unexpected ]")
-			}
-			if interpreter.state.Mem[interpreter.state.Pos] != 0 {
-				interpreter.program.pos = c.pos - 1
-			}
-			_, err = stack.pop()
-			if err != nil {
-				return err
-			}
-		} else if tok == LParen {
-			parenDiff++
-			ctx := stackContext{
-				pos:       interpreter.program.pos,
-				enterLoop: interpreter.state.Mem[interpreter.state.Pos] != 0,
-				root:      false,
-			}
-			stack.push(&ctx)
-		} else {
-			if !c.enterLoop {
-				continue
-			}
-			op, ok := interpreter.ops[tok]
-			if !ok {
-				continue
-			}
-			err = op(interpreter.state)
-			if err != nil {
-				return err
-			}
-		}
 	}
+	return nil
+}
+
+func (interpreter *Interpreter) Execute() error {
+	return interpreter.loop(0, true)
 }
 
 func validate(tok rune, ops map[rune]Operation) error {
@@ -99,10 +102,10 @@ func validate(tok rune, ops map[rune]Operation) error {
 }
 
 func NewInterpreter(config *Config) (*Interpreter, error) {
-	reader := &myBufferedReader{
-		buf:        make([]rune, 0),
-		underlying: config.Program,
-		pos:        0,
+	reader := &util.MyBufferedReader{
+		Buf:        make([]rune, 0),
+		Underlying: config.Program,
+		Pos:        0,
 	}
 	state := &State{
 		Mem:    make([]byte, 1),

@@ -22,8 +22,11 @@ func Read(state *State) error {
 	if err == io.EOF {
 		return nil
 	}
+	if err != nil {
+		return err
+	}
 	state.Mem[state.Pos] = b[0]
-	return err
+	return nil
 }
 
 func Print(state *State) error {

@@ -6,7 +6,7 @@ Gof\*ck - a streaming branf\*ck interpreter
 Add line to your `go.mod` file:
 
 ```
-require github.com/jet-black/gofuck v0.0.3
+require github.com/jet-black/gofuck v0.0.4
 ```
 
 ## Quick start
@@ -86,9 +86,6 @@ ops := interpreter.NewDefaultOperationsRegistry()
 ops.Remove('+')
 err := ops.Add('^', PlusTwo)
 ```
-
-### Explicit stack 
-Nested loops are made via explicit stack, to avoid fiber stack size growth.
 
 ### UTF-8 support
 If you want your operation to be a taco, you can easily do it:
